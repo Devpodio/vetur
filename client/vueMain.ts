@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import { LanguageClient, Range } from 'vscode-languageclient/node';
 import { generateGrammarCommandHandler } from './commands/generateGrammarCommand';
 import { registerLanguageConfigurations } from './languages';
 import { initializeLanguageClient } from './client';
@@ -98,6 +98,33 @@ function registerCustomClientNotificationHandlers(client: LanguageClient) {
   client.onNotification('$/showVirtualFile', (virtualFileSource: string, prettySourceMap: string) => {
     setVirtualContents(virtualFileSource, prettySourceMap);
   });
+
+  // underline with ref value
+  const refTokenDecorationType = vscode.window.createTextEditorDecorationType({ textDecoration: 'underline' });
+  const refTokenFiles = new Map<string, vscode.Range[]>();
+
+  function underlineRefTokens() {
+    if (!vscode.workspace.getConfiguration().get('vetur.underline.refValue')) {
+      return;
+    }
+    if (!vscode.window.activeTextEditor) {
+      return;
+    }
+    const tokens = refTokenFiles.get(vscode.window.activeTextEditor?.document.uri.toString());
+    if (!tokens) {
+      return;
+    }
+    vscode.window.activeTextEditor.setDecorations(refTokenDecorationType, tokens);
+  }
+
+  client.onNotification('$/refTokens', ({ uri, tokens }) => {
+    refTokenFiles.set(
+      client.protocol2CodeConverter.asUri(uri).toString(),
+      client.protocol2CodeConverter.asRanges(tokens)
+    );
+    underlineRefTokens();
+  });
+  vscode.window.onDidChangeActiveTextEditor(() => underlineRefTokens());
 }
 
 function registerCustomLSPCommands(context: vscode.ExtensionContext, client: LanguageClient) {

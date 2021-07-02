@@ -68,6 +68,7 @@ import {
   getTokenModifierFromClassification,
   getTokenTypeFromClassification
 } from './semanticToken';
+import { RefTokensService } from '../../services/RefTokenService';
 
 // Todo: After upgrading to LS server 4.0, use CompletionContext for filtering trigger chars
 // https://microsoft.github.io/language-server-protocol/specification#completion-request-leftwards_arrow_with_hook
@@ -81,7 +82,8 @@ export async function getJavascriptMode(
   documentRegions: LanguageModelCache<VueDocumentRegions>,
   dependencyService: DependencyService,
   globalComponentInfos: BasicComponentInfo[],
-  vueInfoService?: VueInfoService
+  vueInfoService: VueInfoService,
+  refTokensService: RefTokensService
 ): Promise<LanguageMode> {
   const jsDocuments = getLanguageModelCache(10, 60, document => {
     const vueDocument = documentRegions.refreshAndGet(document);
@@ -255,10 +257,14 @@ export async function getJavascriptMode(
               languageId: scriptDoc.languageId,
               uri: doc.uri,
               offset,
-              source: entry.source
+              source: entry.source,
+              tsData: entry.data
             }
           } as CompletionItem;
-
+          // fix: https://github.com/vuejs/vetur/issues/2908
+          if (item.kind === CompletionItemKind.File && !item.detail?.endsWith('.js') && !item.detail?.endsWith('.ts')) {
+            item.insertText = item.detail;
+          }
           if (entry.kindModifiers) {
             const kindModifiers = parseKindModifier(entry.kindModifiers ?? '');
             if (kindModifiers.optional) {
@@ -320,7 +326,8 @@ export async function getJavascriptMode(
         item.label,
         getFormatCodeSettings(env.getConfig()),
         item.data.source,
-        getUserPreferences(scriptDoc)
+        getUserPreferences(scriptDoc),
+        item.data.tsData
       );
 
       if (details && item.kind !== CompletionItemKind.File && item.kind !== CompletionItemKind.Folder) {
@@ -713,7 +720,15 @@ export async function getJavascriptMode(
         } else {
           doFormat = prettierify;
         }
-        return doFormat(dependencyService, code, filePath, range, vlsFormatConfig, parser, needInitialIndent);
+        return doFormat(
+          dependencyService,
+          code,
+          filePath,
+          scriptDoc.languageId,
+          range,
+          vlsFormatConfig,
+          needInitialIndent
+        );
       } else {
         const initialIndentLevel = needInitialIndent ? 1 : 0;
         const formatSettings: ts.FormatCodeSettings =
@@ -818,7 +833,7 @@ export async function getJavascriptMode(
       const { spans } = service.getEncodedSemanticClassifications(
         fileFsPath,
         textSpan,
-        tsModule.SemanticClassificationFormat.TwentyTwenty
+        tsModule.SemanticClassificationFormat?.TwentyTwenty
       );
 
       const data: SemanticTokenOffsetData[] = [];
@@ -846,7 +861,11 @@ export async function getJavascriptMode(
 
       const program = service.getProgram();
       if (program) {
-        addCompositionApiRefTokens(tsModule, program, fileFsPath, data);
+        const refTokens = addCompositionApiRefTokens(tsModule, program, fileFsPath, data, refTokensService);
+        refTokensService.send(
+          doc.uri,
+          refTokens.map(t => Range.create(scriptDoc.positionAt(t[0]), scriptDoc.positionAt(t[1])))
+        );
       }
 
       return data.map(({ start, ...rest }) => {
@@ -1067,7 +1086,7 @@ function convertOptions(
   });
 }
 
-function getFormatCodeSettings(config: any): ts.FormatCodeSettings {
+export function getFormatCodeSettings(config: any): ts.FormatCodeSettings {
   return {
     tabSize: config.vetur.format.options.tabSize,
     indentSize: config.vetur.format.options.tabSize,

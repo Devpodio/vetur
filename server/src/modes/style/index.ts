@@ -47,6 +47,7 @@ export function getSCSSMode(
   const languageService = getSCSSLanguageService();
   return getStyleMode(env, 'scss', languageService, documentRegions, dependencyService);
 }
+
 export function getLESSMode(
   env: EnvironmentService,
   documentRegions: LanguageModelCache<VueDocumentRegions>,
@@ -172,19 +173,14 @@ function getStyleMode(
 
       const { value, range } = getValueAndRange(document, currRange);
       const needIndent = env.getConfig().vetur.format.styleInitialIndent;
-      const parserMap: { [k: string]: BuiltInParserName } = {
-        css: 'css',
-        postcss: 'css',
-        scss: 'scss',
-        less: 'less'
-      };
+
       return prettierify(
         dependencyService,
         value,
         getFileFsPath(document.uri),
+        languageId,
         range,
         env.getConfig().vetur.format as VLSFormatConfig,
-        parserMap[languageId],
         needIndent
       );
     },

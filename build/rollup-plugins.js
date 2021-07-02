@@ -1,4 +1,4 @@
-const { startService } = require('esbuild');
+const { build } = require('esbuild');
 const path = require('path');
 const { spawn } = require('child_process');
 
@@ -32,7 +32,16 @@ function generateTypingsVls() {
       return new Promise((resolve, reject) => {
         const tsc = spawn(
           path.join('node_modules', '.bin', 'tsc'),
-          ['--declaration', '--declarationDir', './typings', '--emitDeclarationOnly', '--pretty', '--incremental'],
+          [
+            '-p',
+            'tsconfig.json',
+            '--declaration',
+            '--declarationDir',
+            './typings',
+            '--emitDeclarationOnly',
+            '--pretty',
+            '--incremental'
+          ],
           { cwd: getServerPath('./'), shell: true }
         );
         tsc.stdout.on('data', data => {
@@ -55,15 +64,6 @@ function generateTypingsVls() {
 }
 
 function bundleVlsWithEsbuild() {
-  /**
-   * @type {import('esbuild').Service | null}
-   */
-  let service = null;
-  /**
-   * @type {import('esbuild').BuildIncremental | null}
-   */
-  let rebuildService = null;
-
   const options = {
     entryPoints: [getServerPath('src/main.ts')],
     outfile: getServerPath('dist/vls.js'),
@@ -117,17 +117,9 @@ function bundleVlsWithEsbuild() {
   return {
     name: 'bundle-vls-with-esbuild',
     async buildStart() {
-      if (!service) {
-        service = await startService();
-      }
       console.log(`bundles ${getServerPath('src/main.ts')} with esbuild`);
-      rebuildService = rebuildService ? await rebuildService.rebuild() : await service.build(options);
+      build(options);
       console.log(`✨ success with esbuild`);
-    },
-    async buildEnd() {
-      if (!process.env.ROLLUP_WATCH) {
-        service.stop();
-      }
     }
   };
 }

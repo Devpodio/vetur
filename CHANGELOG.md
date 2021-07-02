@@ -1,9 +1,28 @@
 # Changelog
 
-### Not Released Yet
+### Un release
+
+- Fix: delete 'docs' in some links in FAQ page. #2987. Thanks to contribution from [@cristianpoleyJS](https://github.com/cristianpoleyJS).
+
+### 0.34.1 | 2021-06-04 | [VSIX](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/octref/vsextensions/vetur/0.34.1/vspackage)
+
+- Fix formatting failed when typescript block with prettier. #2982
+- Respect project baseURL relative to tsconfig.json. #2952
+
+### 0.34.0 | 2021-06-04 | [VSIX](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/octref/vsextensions/vetur/0.34.0/vspackage)
 
 - Add `--log-level` option for `vti diagnostics` to configure log level to print. #2752.
+- Upgrade `typescript` to 4.3.2.
+- Upgrade `prettier` to 2.3.0.
+- Upgrade `@prettier/plugin-pug` to 1.15.2.
+- Fix `prettier-eslint`. #2840
+- Underline with ref `.value`, based on Semantic tokens.
 - 🙌 Semantic tokens for typescript and highlight `.value` if using composition API. Thanks to contribution from [@jasonlyu123](https://github.com/jasonlyu123). #2802 #1904 # 2434
+- 🙌 Syntax Highlighting for SugarSS. Thanks to contribution from [@softwaredeveloptam](https://github.com/softwaredeveloptam). #2828.
+- 🙌 Fix component data not shown in hover when template interpolation is on. Thanks to contribution from [@rchl](https://github.com/rchl). #2879 #2878.
+- 🙌 Look for a `.stylintrc` file when formatting stylus code. Thanks to contribution from [@ntraut](https://github.com/ntraut). #2689.
+- 🙌 Add paths option for `vti diagnostics` to diagnose only sub files or directories. Thanks to contribution from [@gregoirechauvet](https://github.com/gregoirechauvet). #2455.
+- 🙌 Fix attribute description not showing if its name matches html event. Thanks to contribution from [@rchl](https://github.com/rchl). #2901
 
 ### 0.33.1 | 2021-03-07 | [VSIX](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/octref/vsextensions/vetur/0.33.1/vspackage)
 

@@ -43,6 +43,7 @@ import { getFileFsPath } from '../utils/paths';
 import { DependencyService } from './dependencyService';
 import { DocumentService } from './documentService';
 import { EnvironmentService } from './EnvironmentService';
+import { RefTokensService } from './RefTokenService';
 import { VueInfoService } from './vueInfoService';
 
 export interface ProjectService {
@@ -73,7 +74,8 @@ export async function createProjectService(
   env: EnvironmentService,
   documentService: DocumentService,
   globalSnippetDir: string | undefined,
-  dependencyService: DependencyService
+  dependencyService: DependencyService,
+  refTokensService: RefTokensService
 ): Promise<ProjectService> {
   const vueInfoService = new VueInfoService();
   const languageModes = new LanguageModes();
@@ -81,7 +83,7 @@ export async function createProjectService(
   function getValidationFlags(): Record<string, boolean> {
     const config = env.getConfig();
     return {
-      'vue-html': config.vetur.validation.template,
+      'vue-html': config.vetur.validation.template || config.vetur.validation.templateProps,
       css: config.vetur.validation.style,
       postcss: config.vetur.validation.style,
       scss: config.vetur.validation.style,
@@ -95,7 +97,8 @@ export async function createProjectService(
     env,
     {
       infoService: vueInfoService,
-      dependencyService
+      dependencyService,
+      refTokensService
     },
     globalSnippetDir
   );
