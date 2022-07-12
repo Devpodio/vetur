@@ -1,7 +1,7 @@
 {
   "name": "vls",
   "description": "Vue Language Server",
-  "version": "0.7.6",
+  "version": "0.8.1",
   "author": "Pine Wu <octref@gmail.com>",
   "license": "MIT",
   "main": "dist/vls.js",
@@ -61,7 +61,7 @@
     "parse-gitignore": "^1.0.1",
     "prettier-eslint": "^13.0.0",
     "prettier-tslint": "^0.4.2",
-    "rollup": "^2.52.2",
+    "rollup": "^2.76.0",
     "sass-formatter": "^0.7.2",
     "source-map-support": "^0.5.20",
     "stylus": "^0.55.0",
