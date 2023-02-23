@@ -19,6 +19,27 @@ assignees: ''
 - Platform: <!-- Win/macOS/Linux -->
 - Vetur version:
 - VS Code version:
+- TypeScript version:
+- Vetur output:
+<details><summary>Output</summary>
+<p>
+
+```
+<!-- Run VSCode command `Vetur: Show output panel` -->
+```
+
+</p>
+</details>
+- Vetur doctor output
+<details><summary>Doctor output</summary>
+<p>
+
+```
+<!-- Run VSCode command `Vetur: Show doctor info` -->
+```
+
+</p>
+</details>
 
 ## Problem
 

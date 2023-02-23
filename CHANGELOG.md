@@ -1,5 +1,20 @@
 # Changelog
 
+### 0.37.3 | 2023-02-23 | [VSIX](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/octref/vsextensions/vetur/0.37.3/vspackage)
+- Ignore vue/multi-word-component-names in template validation. #3649
+- Fix vetur hang any request when project have .gitignore. #3657
+
+### 0.37.0 | 2023-02-20 | [VSIX](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/octref/vsextensions/vetur/0.37.0/vspackage)
+
+- Upgrade to typescript 4.9 and support it.
+- Upgrade prettier and prettier-eslint.
+- Upgrade ESLint and eslint-plugin-vue.
+- Upgrade many deps.
+- Recommend new official extension in vue 3 project.
+- Basic support `<script setup>`. #2296
+> Vetur will only basic support `<script setup>`. If you want full support, please to use `Vue Language Features (Volar)` (volar).
+
+
 ### 0.36.1 | 2022-10-31 | [VSIX](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/octref/vsextensions/vetur/0.36.1/vspackage)
 
 - Fix crash when typescript >= 4.8 and enable template type-checking. #3520

@@ -192,7 +192,8 @@ function modifyVueScript(tsModule: RuntimeLibrary['typescript'], sourceFile: ts.
     // (the span of the inserted statement must be (0,0) to avoid overlapping existing statements)
     const setZeroPos = getWrapperRangeSetter(tsModule, { pos: 0, end: 0 });
     const vueImport = setZeroPos(
-      tsModule.createImportDeclaration(
+      createImportDeclaration(
+        tsModule,
         undefined,
         undefined,
         setZeroPos(tsModule.createImportClause(tsModule.createIdentifier('__vueEditorBridge'), undefined as any)),
@@ -212,6 +213,14 @@ function modifyVueScript(tsModule: RuntimeLibrary['typescript'], sourceFile: ts.
     });
     (exportDefaultObject as any).expression = setObjPos(tsModule.createCall(vue, undefined, [objectLiteral]));
     setObjPos((exportDefaultObject.expression as ts.CallExpression).arguments!);
+  } else {
+    // @ts-expect-error
+    sourceFile.externalModuleIndicator = createExportAssignment(
+      tsModule,
+      undefined,
+      undefined,
+      tsModule.createCall(tsModule.createIdentifier('__vueEditorBridge'), undefined, [tsModule.createObjectLiteral([])])
+    );
   }
 }
 
@@ -238,20 +247,8 @@ export function injectVueTemplate(
     componentFilePath = './' + path.basename(sourceFile.fileName.slice(0, -'.template'.length));
   }
 
-  const createImportDeclaration = (
-    decorators: readonly ts.Decorator[] | undefined,
-    modifiers: readonly ts.Modifier[] | undefined,
-    importClause: ts.ImportClause | undefined,
-    moduleSpecifier: ts.Expression
-  ) => {
-    const [major, minor] = tsModule.version.split('.');
-    if ((Number(major) === 4 && Number(minor) >= 8) || Number(major) > 4) {
-      return tsModule.factory.createImportDeclaration(decorators, modifiers, importClause, moduleSpecifier);
-    }
-    return tsModule.createImportDeclaration(decorators, modifiers, importClause, moduleSpecifier);
-  };
-
   const componentImport = createImportDeclaration(
+    tsModule,
     undefined,
     undefined,
     tsModule.createImportClause(tsModule.createIdentifier(importedComponentName), undefined),
@@ -261,14 +258,15 @@ export function injectVueTemplate(
   const createImportSpecifier = (name: string) => {
     const [major, minor] = tsModule.version.split('.');
     if ((Number(major) === 4 && Number(minor) >= 5) || Number(major) > 4) {
-      // @ts-expect-error
-      return tsModule.createImportSpecifier(undefined, undefined, tsModule.createIdentifier(name));
+      return tsModule.createImportSpecifier(false, undefined, tsModule.createIdentifier(name));
     }
+    // @ts-expect-error
     return tsModule.createImportSpecifier(undefined, tsModule.createIdentifier(name));
   };
 
   // import helper type to handle Vue's private methods
   const helperImport = createImportDeclaration(
+    tsModule,
     undefined,
     undefined,
     tsModule.createImportClause(
@@ -310,6 +308,34 @@ export function injectVueTemplate(
   // otherwise symbols in this template (e.g. __Component) will be put
   // into global namespace and it causes duplicated identifier error.
   (sourceFile as any).externalModuleIndicator = componentImport;
+}
+
+function createImportDeclaration(
+  tsModule: RuntimeLibrary['typescript'],
+  decorators: readonly ts.Decorator[] | undefined,
+  modifiers: readonly ts.Modifier[] | undefined,
+  importClause: ts.ImportClause | undefined,
+  moduleSpecifier: ts.Expression
+) {
+  const [major, minor] = tsModule.version.split('.');
+  if ((Number(major) === 4 && Number(minor) >= 8) || Number(major) > 4) {
+    return tsModule.factory.createImportDeclaration(decorators, modifiers, importClause, moduleSpecifier);
+  }
+  return tsModule.createImportDeclaration(decorators, modifiers, importClause, moduleSpecifier);
+}
+
+function createExportAssignment(
+  tsModule: RuntimeLibrary['typescript'],
+  modifiers: readonly ts.Modifier[] | undefined,
+  isExportEquals: boolean | undefined,
+  expression: ts.Expression
+) {
+  const [major, minor] = tsModule.version.split('.');
+  if ((Number(major) === 4 && Number(minor) >= 8) || Number(major) > 4) {
+    return tsModule.factory.createExportAssignment(modifiers, isExportEquals, expression);
+  }
+  // @ts-expect-error
+  return tsModule.createExportAssignment(modifiers, isExportEquals, undefined, expression);
 }
 
 /** Create a function that calls setTextRange on synthetic wrapper nodes that need a valid range */
